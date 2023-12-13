@@ -9,7 +9,7 @@ The second figure shows the case that enables the lattitude control
 ![Alt text](18_path.png?raw=true "18 motion case")
 
 The third figure show the case that enables all combination of motions
-![Alt text](18_path.png?raw=true "25 motion case")
+![Alt text](25_path.png?raw=true "25 motion case")
 
 ## References
 [1]	B. Donald, P. Xavier, J. Canny, and J. Reif, “Kinodynamic motion planning,” J. ACM, vol. 40, no. 5, pp. 1048–1066, 1993.
