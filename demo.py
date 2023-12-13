@@ -19,7 +19,8 @@ state_limits = {'x': (-4.75, 4.75), 'y': (-4.75, 4.75), 'theta': (-np.pi, np.pi)
 
 
 def distance(config1, config2):
-    weight = np.array([0.35,0.35,0.15,0.05,0.05,0.05])
+    weight = np.array([0.4,0.4,0.05,0.15,0.15,0.15])
+    weight = weight/np.linalg.norm(weight)
     ##config is a tuple
     array1 = np.array(config1)
     array2 = np.array(config2)
@@ -66,25 +67,27 @@ def dynamic_model(config, input, dt):
 
 def get_new_config(current_config, rand_config,input_sample_num,collision_fn, dt):
     input_list = []
+    # input_list.append((0,0,0))##stay still
     input_list.append((1,0,0))##move forward
     input_list.append((-1,0,0))##move backward
     input_list.append((0,0,1))##turn left
     input_list.append((0,0,-1))##turn right
-    input_list.append((-1,-1,0))##move backward and right
     input_list.append((1,0,1))##move forward and turn left
     input_list.append((1,0,-1))##move forward and turn right
     input_list.append((-1,0,1))##move backward and turn left
     input_list.append((-1,0,-1))##move backward and turn right
-    ## 0 - 8 are the 9 basic motions, pretending the robot is a car
+    ## 0 - 8 enables the robot to move forward and backward and turn left and right
     input_list.append((0,1,0))##move left
     input_list.append((0,-1,0))##move right
     input_list.append((1,1,0))##move forward and left
     input_list.append((1,-1,0))##move forward and right
     input_list.append((-1,1,0))##move backward and left
+    input_list.append((-1,-1,0))##move backward and right
     input_list.append((0,1,1))##move left and turn left
     input_list.append((0,1,-1))##move left and turn right
     input_list.append((0,-1,1))##move right and turn left
     input_list.append((0,-1,-1))##move right and turn right
+    ## 9 - 18 enables the robot to move left and right and turn left and right
     input_list.append((1,1,1))##move forward and left and turn left
     input_list.append((1,1,-1))##move forward and left and turn right
     input_list.append((1,-1,1))##move forward and right and turn left
@@ -93,8 +96,7 @@ def get_new_config(current_config, rand_config,input_sample_num,collision_fn, dt
     input_list.append((-1,1,-1))##move backward and left and turn right
     input_list.append((-1,-1,1))##move backward and right and turn left
     input_list.append((-1,-1,-1))##move backward and right and turn right
-    # input_list*=100
-    ## 9 - 24 are the 16 basic motions, pretending the robot is a car
+    ## 19 - 26 enables the robot to move forward and backward and left and right
     dis = []
     new_config_list = []
     for i in range(input_sample_num):
@@ -121,7 +123,7 @@ def expand_node(node_list, closest_node, rand_config, collision_fn, input_sample
     new_node_list = node_list
     current_node = closest_node
     num = 0
-    while distance(current_node.config, rand_config) > 0.1 and num < 100:
+    while distance(current_node.config, rand_config) > 0.2 and num < 100:
         new_config = get_new_config(current_node.config, rand_config,input_sample_num,collision_fn, dt)
         if new_config == None:
             break
@@ -152,9 +154,9 @@ def rrt_connect(start_config, goal_config, collision_fn, input_sample_num):
                 rand_config = [random.uniform(state_limits[name][0], state_limits[name][1]) for name in state_names]
         closest_node = get_closest_node(rand_config, node_list)
         node_list = expand_node(node_list, closest_node, rand_config, collision_fn, input_sample_num, dt)
-        if distance(node_list[-1].config, goal_config) < 0.1 or ((node_list[-1].config[0]-goal_config[0])**2 < 0.03 and (node_list[-1].config[1]-goal_config[1])**2 < 0.03 and (node_list[-1].config[2]-goal_config[2])**2 < 0.05) :
-            goal_node.parent = node_list[-1]
-            node_list.append(goal_node)
+        if distance(node_list[-1].config, goal_config) < 0.2 or ((node_list[-1].config[0]-goal_config[0])**2 < 0.1 and (node_list[-1].config[1]-goal_config[1])**2 < 0.1) :
+            # goal_node.parent = node_list[-1]
+            # node_list.append(goal_node)
             find_path = True
             break
     if find_path:
@@ -163,7 +165,7 @@ def rrt_connect(start_config, goal_config, collision_fn, input_sample_num):
 
 def get_path(node_list, goal_node):
     path = []
-    current_node = goal_node
+    current_node = node_list[-1]
     while current_node.parent != None:
         path.append((current_node.config[0], current_node.config[1], current_node.config[2]))
         current_node = current_node.parent
@@ -221,10 +223,10 @@ def main(screenshot=False):
     print("This program is expected to run for 4~10 minutes (incluing drawing paths)...")
     print()
     start_config = (-4.5, 4.5, 0, 0, 0, 0)
-    goal_config = (4.5, -4.5, -np.pi/2, 0, 0, 0)
+    goal_config = (4.0, -4.0, -np.pi/2, 0, 0, 0)
     draw_sphere_marker((goal_config[0], goal_config[1], 0.1), 0.15, (1, 0, 0, 1))
     start_time = time.time()
-    explored, path = rrt_connect(start_config, goal_config, collision_fn, 9)
+    explored, path = rrt_connect(start_config, goal_config, collision_fn, 18)
     totalnodes, nodenum, quality_eu, quality_plus = path_quality(explored, path)
     print("Finish building the RRT!!")
     print("computation time:", time.time() - start_time)
