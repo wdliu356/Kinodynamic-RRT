@@ -180,7 +180,10 @@ def path_quality(explored, path):
     quality_2 = 0
     for i in range(nodenum-1):
         quality_1 += np.sqrt((path[i][0]-path[i+1][0])**2+(path[i][1]-path[i+1][1])**2)
-        quality_2 += np.sqrt((path[i][0]-path[i+1][0])**2+(path[i][1]-path[i+1][1])**2+(path[i][2]-path[i+1][2])**2)
+        dtheta = abs(path[i][2]-path[i+1][2])
+        if dtheta > np.pi:
+            dtheta = 2*np.pi - dtheta
+        quality_2 += np.sqrt((path[i][0]-path[i+1][0])**2+(path[i][1]-path[i+1][1])**2+dtheta**2)
     return totalnodes, nodenum, quality_1, quality_2
 def draw_sphere_markers(configs, color,z, marker_size=3.):
     """
@@ -220,7 +223,7 @@ def main(screenshot=False):
     print()
     print("Building RRT...")
     print("We will show the search trees(blue) and executed path(green) in this program.")
-    print("This program is expected to run for 4~10 minutes (incluing drawing paths)...")
+    print("This program is expected to run for 1~10 minutes...")
     print()
     start_config = (-4.5, 4.5, 0, 0, 0, 0)
     goal_config = (4.0, -4.0, -np.pi/2, 0, 0, 0)
